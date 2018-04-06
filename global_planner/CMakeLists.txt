@@ -14,6 +14,10 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   tf
   pcl_ros
+  mavlink
+  mavros_msgs
+  mavros
+  mavros_extras
 )
 find_package(PCL 1.7 REQUIRED)
 find_package(octomap REQUIRED)
