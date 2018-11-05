@@ -691,6 +691,84 @@ void LocalPlannerNode::pointCloudCallback(
     const sensor_msgs::PointCloud2::ConstPtr& msg, int index) {
   cameras_[index].newest_cloud_msg_ = *msg;  // FIXME: avoid a copy
   cameras_[index].received_ = true;
+
+
+//determine FOV
+  geometry_msgs::Point pos;
+  pos.x = 0.0;
+  pos.y = 0.0;
+  pos.z = 0.0;
+  int azimuth_distribution [360];
+  int elevation_distribution [180];
+  int n_points = 0;
+
+  for(int i = 0; i<360; i++){
+	  azimuth_distribution[i] = 0;
+  }
+
+  for(int i = 0; i<180; i++){
+	  elevation_distribution[i] = 0;
+   }
+
+  pcl::PointCloud<pcl::PointXYZ> complete_cloud;
+  pcl::fromROSMsg(cameras_[index].newest_cloud_msg_, complete_cloud);
+
+  std::cout<<cameras_[index].topic_<<": \n";
+  pcl::PointCloud<pcl::PointXYZ>::iterator pcl_it;
+
+  for (pcl_it = complete_cloud.begin(); pcl_it != complete_cloud.end(); ++pcl_it) {
+  // Check if the point is invalid
+    if (!std::isnan(pcl_it->x) && !std::isnan(pcl_it->y) && !std::isnan(pcl_it->z)) {
+    	if (pcl_it->x != 0 && pcl_it->y != 0 && pcl_it->z != 0) {
+
+    		//azimuth angle
+    		int z = (int)floor(atan2(pcl_it->x - pos.x, pcl_it->z - pos.z) * 180.0 / M_PI);
+
+    		//elevation angle
+    		int e;
+    		double den = sqrt((pcl_it->x - pos.x) * (pcl_it->x - pos.x) + (pcl_it->z - pos.z) * (pcl_it->z - pos.z));
+    		  if (den == 0) {
+    		    e = 0;
+    		  } else {
+    		    e = (int)floor(atan((pcl_it->y - pos.y) / den) * 180.0 / M_PI);  //(-90.+90)
+    		  }
+
+    		z = z + 180; //[0,360]
+    		e = e + 90; //[0,180]
+
+    		azimuth_distribution[z] = azimuth_distribution[z] + 1;
+    		elevation_distribution[e] = elevation_distribution[e] + 1;
+    		n_points ++;
+    	}
+    }
+  }
+
+
+  int z_min = 360;
+  int z_max = 0;
+  int e_min = 180;
+  int e_max = 0;
+
+  for(int i = 0; i<360-1; i++){
+	  if(azimuth_distribution[i]>0 && i<z_min){
+		  z_min = i;
+	  }
+	  if(azimuth_distribution[i]>0 && i>z_max){
+		  z_max = i;
+	  }
+  }
+  std::cout<<"azimuth distribution ["<<z_min - 180<<", "<<z_max - 180<<"]\n";
+
+  for(int i = 0; i<180; i++){
+	  if(elevation_distribution[i]>0 && i<e_min){
+		  e_min = i;
+	  }
+	  if(elevation_distribution[i]>0 && i>e_max){
+		  e_max = i;
+	  }
+  }
+  std::cout<<"elevation distribution ["<<e_min - 90<<", "<<e_max - 90<<"]\n";
+
 }
 
 void LocalPlannerNode::publishSetpoint(const geometry_msgs::Twist& wp,
