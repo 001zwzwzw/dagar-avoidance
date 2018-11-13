@@ -139,6 +139,8 @@ class LocalPlannerNode {
   ros::Publisher front_pointcloud_pub_;
   ros::Publisher reprojected_points_pub_;
   ros::Publisher bounding_box_pub_;
+  ros::Publisher ground_pub_;
+  ros::Publisher pointcloud_stats_pub_;
   ros::Publisher height_map_pub_;
   ros::Publisher cached_pointcloud_pub_;
   ros::Publisher marker_pub_;
@@ -196,6 +198,7 @@ class LocalPlannerNode {
   void publishAvoidSphere();
   void publishReachHeight();
   void publishTree();
+  void publishGround();
 };
 
 #endif  // LOCAL_PLANNER_LOCAL_PLANNER_NODE_H

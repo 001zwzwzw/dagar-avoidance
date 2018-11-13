@@ -48,6 +48,10 @@ LocalPlannerNode::LocalPlannerNode() {
       nh_.advertise<visualization_msgs::MarkerArray>("/bounding_box", 1);
   avoid_sphere_pub_ =
       nh_.advertise<visualization_msgs::Marker>("/avoid_sphere", 1);
+  ground_pub_ =
+        nh_.advertise<visualization_msgs::Marker>("/ground", 1);
+  pointcloud_stats_pub_ =
+          nh_.advertise<geometry_msgs::Quaternion>("/pointcloud_stats", 1);
   original_wp_pub_ =
       nh_.advertise<visualization_msgs::Marker>("/original_waypoint", 1);
   adapted_wp_pub_ =
@@ -170,6 +174,11 @@ bool LocalPlannerNode::canUpdatePlannerInfo() {
 void LocalPlannerNode::updatePlannerInfo() {
   // update the point cloud
   local_planner_.complete_cloud_.clear();
+  double min_z = 1000000;
+  double max_z = -1000000;
+  double mean_z = 0;
+  int n_points = 0;
+
   for (int i = 0; i < cameras_.size(); ++i) {
     sensor_msgs::PointCloud2 pc2cloud_world;
     pcl::PointCloud<pcl::PointXYZ> complete_cloud;
@@ -183,11 +192,31 @@ void LocalPlannerNode::updatePlannerInfo() {
                                    pc2cloud_world);
       pcl::fromROSMsg(pc2cloud_world, complete_cloud);
       local_planner_.complete_cloud_.push_back(std::move(complete_cloud));
+
+
+      //calculate statistics
+      pcl::PointCloud<pcl::PointXYZ>::iterator pcl_it;
+      for (pcl_it = complete_cloud.begin(); pcl_it != complete_cloud.end(); ++pcl_it) {
+    	  double distance = computeL2Dist(newest_pose_.pose.position, pcl_it);
+    	  if(distance < local_planner_.histogram_box_.radius_){
+    		  if(pcl_it->z < min_z) min_z = pcl_it->z;
+    		  if(pcl_it->z > max_z) max_z = pcl_it->z;
+    		  mean_z += pcl_it->z;
+    		  n_points ++;
+    	  }
+      }
     } catch (tf::TransformException& ex) {
       ROS_ERROR("Received an exception trying to transform a pointcloud: %s",
                 ex.what());
     }
   }
+  mean_z = mean_z/n_points;
+  geometry_msgs::Quaternion p;
+  p.x = min_z;
+  p.y = max_z;
+  p.z = mean_z;
+  p.w = n_points;
+  pointcloud_stats_pub_.publish(p);
 
   // update position
   local_planner_.setPose(newest_pose_);
@@ -485,7 +514,7 @@ void LocalPlannerNode::publishBox() {
   plane.action = visualization_msgs::Marker::ADD;
   plane.pose.position.x = drone_pos.pose.position.x;
   plane.pose.position.y = drone_pos.pose.position.y;
-  plane.pose.position.z = drone_pos.pose.position.z - local_planner_.ground_distance_ + 0.5;
+  plane.pose.position.z = drone_pos.pose.position.z - local_planner_.ground_distance_ + local_planner_.histogram_box_.box_dist_to_ground_;
   plane.pose.orientation.x = 0.0;
   plane.pose.orientation.y = 0.0;
   plane.pose.orientation.z = 0.0;
@@ -712,8 +741,37 @@ void LocalPlannerNode::fcuInputGoalCallback(
 void LocalPlannerNode::distanceSensorCallback(const mavros_msgs::Altitude& msg){
 	if(!std::isnan(msg.bottom_clearance)){
 		ground_distance_msg_ = msg;
-		std::cout<<"Range received: "<<msg.bottom_clearance<<"\n";
+		publishGround();
 	}
+}
+
+void LocalPlannerNode::publishGround() {
+
+  geometry_msgs::PoseStamped drone_pos;
+  local_planner_.getPosition(drone_pos);
+
+  visualization_msgs::Marker plane;
+  plane.header.frame_id = "local_origin";
+  plane.header.stamp = ros::Time::now();
+  plane.id = 1;
+  plane.type = visualization_msgs::Marker::CUBE;
+  plane.action = visualization_msgs::Marker::ADD;
+  plane.pose.position.x = drone_pos.pose.position.x;
+  plane.pose.position.y = drone_pos.pose.position.y;
+  plane.pose.position.z = drone_pos.pose.position.z - local_planner_.ground_distance_;
+  plane.pose.orientation.x = 0.0;
+  plane.pose.orientation.y = 0.0;
+  plane.pose.orientation.z = 0.0;
+  plane.pose.orientation.w = 1.0;
+  plane.scale.x = 2.0 * local_planner_.histogram_box_.radius_;
+  plane.scale.y = 2.0 * local_planner_.histogram_box_.radius_;
+  plane.scale.z = 0.001;;
+  plane.color.a = 0.5;
+  plane.color.r = 0.0;
+  plane.color.g = 0.0;
+  plane.color.b = 1.0;
+
+  ground_pub_.publish(plane);
 }
 
 void LocalPlannerNode::printPointInfo(double x, double y, double z) {

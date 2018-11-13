@@ -15,6 +15,7 @@ class Box {
 
 
   double radius_;
+  double box_dist_to_ground_ = 1.0;
 
  private:
   double xmin_;
