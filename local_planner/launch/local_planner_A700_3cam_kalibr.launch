@@ -10,12 +10,12 @@
     <node pkg="tf" type="static_transform_publisher" name="tf_front_camera"
           args="0.28 0 -0.11 -0.5156121 0.4967097 -0.4724881 0.5139832 fcu front_camera_depth_optical_frame 10"/>
     <node pkg="tf" type="static_transform_publisher" name="tf_right_camera"
-          args="0.15 -0.10 -0.11 0.072909 0.7054072 0.7026419 0.0581317 fcu right_camera_depth_optical_frame 10"/>
+          args="0.15 -0.10 -0.11 -0.083378 0.7581372 -0.642728 0.07195 fcu right_camera_depth_optical_frame 10"/>
     <node pkg="tf" type="static_transform_publisher" name="tf_left_camera"
-          args="0.15 0.10 -0.11 -0.083378 0.7581372 -0.642728 0.07195 fcu left_camera_depth_optical_frame 10"/>
+          args="0.15 0.10 -0.11 0.072909 0.7054072 0.7026419 0.0581317 fcu left_camera_depth_optical_frame 10"/>
     <node pkg="tf" type="static_transform_publisher" name="tf_left_camera_rotated"
           args="0 0 0 3.1415 0 0 left_camera_color_optical_frame left_camera_rotated_link 10"/>
-                  
+            
     <arg name="headless" default="false"/>
     <arg name="ns" default="/"/>
     <arg name="build" default="posix_sitl_default"/>
