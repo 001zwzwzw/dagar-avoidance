@@ -146,6 +146,9 @@ void LocalPlannerNode::initializeCameraSubscribers(
         camera_topics[i], 1,
         boost::bind(&LocalPlannerNode::pointCloudCallback, this, _1, i));
     cameras_[i].topic_ = camera_topics[i];
+    std::string pc_transformed = camera_topics[i];
+    pc_transformed.append("_transformed");
+    cameras_[i].pointcloud_pub_ = nh_.advertise<pcl::PointCloud<pcl::PointXYZ>>(pc_transformed, 1);
   }
 }
 
@@ -192,6 +195,7 @@ void LocalPlannerNode::updatePlannerInfo() {
                                    pc2cloud_world);
       pcl::fromROSMsg(pc2cloud_world, complete_cloud);
       local_planner_.complete_cloud_.push_back(std::move(complete_cloud));
+      cameras_[i].pointcloud_pub_.publish(complete_cloud);
 
 
       //calculate statistics

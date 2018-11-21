@@ -43,6 +43,7 @@
 struct cameraData {
 	std::string topic_;
 	ros::Subscriber pointcloud_sub_;
+	ros::Publisher pointcloud_pub_;
 	sensor_msgs::PointCloud2 newest_cloud_msg_;
 	bool received_;
 };
