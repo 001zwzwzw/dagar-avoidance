@@ -184,7 +184,7 @@ void LocalPlannerNode::updatePlannerInfo() {
 
   for (int i = 0; i < cameras_.size(); ++i) {
     sensor_msgs::PointCloud2 pc2cloud_world;
-    pcl::PointCloud<pcl::PointXYZ> complete_cloud;
+    pcl::PointCloud<pcl::PointXYZ> complete_cloud, original_cloud;
     try {
       tf::StampedTransform transform;
       tf_listener_.lookupTransform(
@@ -194,11 +194,27 @@ void LocalPlannerNode::updatePlannerInfo() {
                                    cameras_[i].newest_cloud_msg_,
                                    pc2cloud_world);
       pcl::fromROSMsg(pc2cloud_world, complete_cloud);
+      pcl::fromROSMsg(cameras_[i].newest_cloud_msg_, original_cloud);
       local_planner_.complete_cloud_.push_back(std::move(complete_cloud));
       cameras_[i].pointcloud_pub_.publish(complete_cloud);
+      double yaw, pitch, roll;
+      transform.getBasis().getRPY(roll, pitch, yaw);
+      std::cout<<"roll pitch yaw: "<<roll<<", "<<pitch<<", "<<yaw<<"\n";
+      pcl::PointCloud<pcl::PointXYZ>::iterator pcl_it_orig;
+      int counter1 = 0;
+      std::cout<<"original cloud data\n";
+      for (pcl_it_orig = original_cloud.begin(); pcl_it_orig != original_cloud.end(); ++pcl_it_orig) {
+         if(counter1<5){
+            std::cout<<"["<<(double)pcl_it_orig->x<<", "<<(double)pcl_it_orig->y<<", "<<(double)pcl_it_orig->z<<"\n";
+         }
+      counter1 ++;
+      }
+
 
 
       //calculate statistics
+      counter1 = 0;
+      std::cout<<"transformed cloud data\n";
       pcl::PointCloud<pcl::PointXYZ>::iterator pcl_it;
       for (pcl_it = complete_cloud.begin(); pcl_it != complete_cloud.end(); ++pcl_it) {
     	  double distance = computeL2Dist(newest_pose_.pose.position, pcl_it);
@@ -208,6 +224,10 @@ void LocalPlannerNode::updatePlannerInfo() {
     		  mean_z += pcl_it->z;
     		  n_points ++;
     	  }
+          if(counter1<5){
+            std::cout<<"["<<pcl_it->x<<", "<<pcl_it->y<<", "<<pcl_it->z<<"\n";
+          }
+          counter1 ++;
       }
     } catch (tf::TransformException& ex) {
       ROS_ERROR("Received an exception trying to transform a pointcloud: %s",
