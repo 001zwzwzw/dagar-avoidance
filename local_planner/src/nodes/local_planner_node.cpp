@@ -199,15 +199,22 @@ void LocalPlannerNode::updatePlannerInfo() {
       cameras_[i].pointcloud_pub_.publish(complete_cloud);
       double yaw, pitch, roll;
       transform.getBasis().getRPY(roll, pitch, yaw);
+      tf::Matrix3x3 Rotation;
+      Rotation.setRotation(transform.getRotation());
+      std::cout<<"rotation matrix:\n";
+      for(int i = 0; i<3; i++){
+    	  tf::Vector3 row = Rotation.getRow(i);
+    	  std::cout<<"[ "<<row[0]<<", "<<row[1]<<", "<<row[2]<<"]\n";
+      }
       std::cout<<"roll pitch yaw: "<<roll<<", "<<pitch<<", "<<yaw<<"\n";
       pcl::PointCloud<pcl::PointXYZ>::iterator pcl_it_orig;
       int counter1 = 0;
       std::cout<<"original cloud data\n";
       for (pcl_it_orig = original_cloud.begin(); pcl_it_orig != original_cloud.end(); ++pcl_it_orig) {
-         if(counter1<5){
-            std::cout<<"["<<(double)pcl_it_orig->x<<", "<<(double)pcl_it_orig->y<<", "<<(double)pcl_it_orig->z<<"\n";
+         if(counter1<5 && !std::isnan(pcl_it_orig->x) && !std::isnan(pcl_it_orig->y) && !std::isnan(pcl_it_orig->z)){
+        	std::cout<<"["<<pcl_it_orig->x<<", "<<pcl_it_orig->y<<", "<<pcl_it_orig->z<<"]\n";
+            counter1 ++;
          }
-      counter1 ++;
       }
 
 
@@ -224,10 +231,10 @@ void LocalPlannerNode::updatePlannerInfo() {
     		  mean_z += pcl_it->z;
     		  n_points ++;
     	  }
-          if(counter1<5){
-            std::cout<<"["<<pcl_it->x<<", "<<pcl_it->y<<", "<<pcl_it->z<<"\n";
+          if(counter1<5 && !std::isnan(pcl_it->x) && !std::isnan(pcl_it->y) && !std::isnan(pcl_it->z)){
+            std::cout<<"["<<pcl_it->x<<", "<<pcl_it->y<<", "<<pcl_it->z<<"]\n";
+            counter1 ++;
           }
-          counter1 ++;
       }
     } catch (tf::TransformException& ex) {
       ROS_ERROR("Received an exception trying to transform a pointcloud: %s",
