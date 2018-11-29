@@ -14,7 +14,7 @@ Box::~Box() {}
 void Box::setBoxLimits(const geometry_msgs::Point& pos, const double ground_distance) {
   xmin_ = pos.x - radius_;
   ymin_ = pos.y - radius_;
-  zmin_ = pos.z - ground_distance + box_dist_to_ground_;
+  zmin_ = std::max(pos.z - ground_distance + box_dist_to_ground_, pos.z - 1.0);
   xmax_ = pos.x + radius_;
   ymax_ = pos.y + radius_;
   zmax_ = pos.z + radius_;

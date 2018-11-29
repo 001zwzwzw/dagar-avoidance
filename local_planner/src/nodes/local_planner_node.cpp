@@ -197,31 +197,9 @@ void LocalPlannerNode::updatePlannerInfo() {
       pcl::fromROSMsg(cameras_[i].newest_cloud_msg_, original_cloud);
       local_planner_.complete_cloud_.push_back(std::move(complete_cloud));
       cameras_[i].pointcloud_pub_.publish(complete_cloud);
-      double yaw, pitch, roll;
-      transform.getBasis().getRPY(roll, pitch, yaw);
-      tf::Matrix3x3 Rotation;
-      Rotation.setRotation(transform.getRotation());
-      std::cout<<"rotation matrix:\n";
-      for(int i = 0; i<3; i++){
-    	  tf::Vector3 row = Rotation.getRow(i);
-    	  std::cout<<"[ "<<row[0]<<", "<<row[1]<<", "<<row[2]<<"]\n";
-      }
-      std::cout<<"roll pitch yaw: "<<roll<<", "<<pitch<<", "<<yaw<<"\n";
       pcl::PointCloud<pcl::PointXYZ>::iterator pcl_it_orig;
-      int counter1 = 0;
-      std::cout<<"original cloud data\n";
-      for (pcl_it_orig = original_cloud.begin(); pcl_it_orig != original_cloud.end(); ++pcl_it_orig) {
-         if(counter1<5 && !std::isnan(pcl_it_orig->x) && !std::isnan(pcl_it_orig->y) && !std::isnan(pcl_it_orig->z)){
-        	std::cout<<"["<<pcl_it_orig->x<<", "<<pcl_it_orig->y<<", "<<pcl_it_orig->z<<"]\n";
-            counter1 ++;
-         }
-      }
-
-
 
       //calculate statistics
-      counter1 = 0;
-      std::cout<<"transformed cloud data\n";
       pcl::PointCloud<pcl::PointXYZ>::iterator pcl_it;
       for (pcl_it = complete_cloud.begin(); pcl_it != complete_cloud.end(); ++pcl_it) {
     	  double distance = computeL2Dist(newest_pose_.pose.position, pcl_it);
@@ -231,10 +209,6 @@ void LocalPlannerNode::updatePlannerInfo() {
     		  mean_z += pcl_it->z;
     		  n_points ++;
     	  }
-          if(counter1<5 && !std::isnan(pcl_it->x) && !std::isnan(pcl_it->y) && !std::isnan(pcl_it->z)){
-            std::cout<<"["<<pcl_it->x<<", "<<pcl_it->y<<", "<<pcl_it->z<<"]\n";
-            counter1 ++;
-          }
       }
     } catch (tf::TransformException& ex) {
       ROS_ERROR("Received an exception trying to transform a pointcloud: %s",
@@ -545,7 +519,7 @@ void LocalPlannerNode::publishBox() {
   plane.action = visualization_msgs::Marker::ADD;
   plane.pose.position.x = drone_pos.pose.position.x;
   plane.pose.position.y = drone_pos.pose.position.y;
-  plane.pose.position.z = drone_pos.pose.position.z - local_planner_.ground_distance_ + local_planner_.histogram_box_.box_dist_to_ground_;
+  plane.pose.position.z = std::max(drone_pos.pose.position.z  - local_planner_.ground_distance_ + local_planner_.histogram_box_.box_dist_to_ground_, drone_pos.pose.position.z - 1.0);
   plane.pose.orientation.x = 0.0;
   plane.pose.orientation.y = 0.0;
   plane.pose.orientation.z = 0.0;
