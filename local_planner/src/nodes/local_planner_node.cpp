@@ -519,7 +519,7 @@ void LocalPlannerNode::publishBox() {
   plane.action = visualization_msgs::Marker::ADD;
   plane.pose.position.x = drone_pos.pose.position.x;
   plane.pose.position.y = drone_pos.pose.position.y;
-  plane.pose.position.z = std::max(drone_pos.pose.position.z  - local_planner_.ground_distance_ + local_planner_.histogram_box_.box_dist_to_ground_, drone_pos.pose.position.z - 1.0);
+  plane.pose.position.z = local_planner_.histogram_box_.zmin_;
   plane.pose.orientation.x = 0.0;
   plane.pose.orientation.y = 0.0;
   plane.pose.orientation.z = 0.0;
