@@ -181,6 +181,7 @@ class LocalPlannerNode {
   ros::Publisher original_wp_pub_;
   ros::Publisher adapted_wp_pub_;
   ros::Publisher smoothed_wp_pub_;
+  ros::Publisher histogram_image_pub_;
 
   std::vector<float> algo_time;
 
@@ -223,6 +224,7 @@ class LocalPlannerNode {
   void publishReachHeight();
   void publishTree();
   void publishGround();
+  void publishHistogramImage();
 };
 }
 #endif  // LOCAL_PLANNER_LOCAL_PLANNER_NODE_H

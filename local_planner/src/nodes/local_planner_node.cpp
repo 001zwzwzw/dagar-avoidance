@@ -99,6 +99,8 @@ LocalPlannerNode::LocalPlannerNode() {
       nh_.advertise<visualization_msgs::Marker>("/offboard_pose", 1);
   initial_height_pub_ =
       nh_.advertise<visualization_msgs::Marker>("/initial_height", 1);
+  histogram_image_pub_ =
+	  nh_.advertise<sensor_msgs::Image>("/histogram_image", 1);
 
   mavros_set_mode_client_ =
       nh_.serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
@@ -642,6 +644,10 @@ void LocalPlannerNode::publishWaypoints(bool hover) {
   mavros_obstacle_free_path_pub_.publish(obst_free_path);
 }
 
+void LocalPlannerNode::publishHistogramImage(){
+	histogram_image_pub_.publish(local_planner_.histogram_image_);
+}
+
 void LocalPlannerNode::publishTree() {
   visualization_msgs::Marker tree_marker;
   tree_marker.header.frame_id = "local_origin";
@@ -953,6 +959,7 @@ void LocalPlannerNode::publishPlannerData() {
   publishBox();
   publishAvoidSphere();
   publishReachHeight();
+  publishHistogramImage();
 }
 
 void LocalPlannerNode::dynamicReconfigureCallback(
