@@ -103,4 +103,6 @@
     <!-- switch off and on auto exposure of Realsense cameras, as it does not work on startup -->
     <node name="set_RS_param" pkg="local_planner" type="realsense_params.sh" />
 
+   <include file="$(find system_monitor_ros)/system_monitor.launch">
+   </include>
 </launch>

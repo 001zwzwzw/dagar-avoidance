@@ -48,14 +48,15 @@ int main(int argc, char** argv) {
       if (!landing) {
         mavros_msgs::SetMode mode_msg;
         mode_msg.request.custom_mode = "AUTO.LOITER";
-        landing = true;
-        Node.status_msg_.state = (int)MAV_STATE::MAV_STATE_FLIGHT_TERMINATION;
         if (Node.mavros_set_mode_client_.call(mode_msg) &&
             mode_msg.response.mode_sent) {
-          ROS_WARN("\033[1;33m Pointcloud timeout: Landing \n \033[0m");
+          ROS_ERROR("\033[1;33m Pointcloud timeout: Landing \n \033[0m");
+          landing = true;
+          Node.status_msg_.state = (int)MAV_STATE::MAV_STATE_FLIGHT_TERMINATION;
         } else {
           ROS_ERROR(
               "\033[1;33m Pointcloud timeout: Landing failed! \n \033[0m");
+          Node.status_msg_.state = (int)MAV_STATE::MAV_STATE_CRITICAL;
         }
       }
     } else {
