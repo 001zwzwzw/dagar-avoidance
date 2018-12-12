@@ -252,11 +252,16 @@ void WaypointGenerator::smoothWaypoint(double dt) {
     vel_sp_xy = (jerk_diff * dt + accel_cur) * dt + vel_cur_xy;
   }
 
-  output_.smoothed_goto_position.x =
-      last_position_waypoint_.pose.position.x + vel_sp_xy(0) * dt;
-  output_.smoothed_goto_position.y =
-      last_position_waypoint_.pose.position.y + vel_sp_xy(1) * dt;
-  output_.smoothed_goto_position.z = output_.adapted_goto_position.z;
+  if(std::abs(output_.adapted_goto_position.x - last_position_waypoint_.pose.position.x) > 100 ||
+		  std::abs(output_.adapted_goto_position.y - last_position_waypoint_.pose.position.y) > 100){
+	  output_.smoothed_goto_position = output_.adapted_goto_position;
+  }else{
+	  output_.smoothed_goto_position.x =
+	        last_position_waypoint_.pose.position.x + vel_sp_xy(0) * dt;
+	  output_.smoothed_goto_position.y =
+	        last_position_waypoint_.pose.position.y + vel_sp_xy(1) * dt;
+	  output_.smoothed_goto_position.z = output_.adapted_goto_position.z;
+  }
 
   ROS_DEBUG("[WG] Smoothed waypoint: [%f %f %f].",
             output_.smoothed_goto_position.x, output_.smoothed_goto_position.y,
