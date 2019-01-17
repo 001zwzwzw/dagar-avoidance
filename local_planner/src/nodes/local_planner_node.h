@@ -144,8 +144,6 @@ class LocalPlannerNode {
 
   double avoid_radius_;
   mavros_msgs::Altitude ground_distance_msg_;
-  geometry_msgs::Point avoid_centerpoint_;
-  bool use_sphere_;
   int path_length_ = 0;
 
   // Subscribers
@@ -175,7 +173,6 @@ class LocalPlannerNode {
   ros::Publisher marker_selected_pub_;
   ros::Publisher marker_FOV_pub_;
   ros::Publisher marker_goal_pub_;
-  ros::Publisher avoid_sphere_pub_;
   ros::Publisher takeoff_pose_pub_;
   ros::Publisher offboard_pose_pub_;
   ros::Publisher initial_height_pub_;
@@ -224,7 +221,6 @@ class LocalPlannerNode {
   void printPointInfo(double x, double y, double z);
   void publishGoal();
   void publishBox();
-  void publishAvoidSphere();
   void publishReachHeight();
   void publishTree();
   void publishHistogramImage();
