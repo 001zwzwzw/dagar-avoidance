@@ -52,6 +52,9 @@ void filterPointCloud(
     const std::vector<pcl::PointCloud<pcl::PointXYZ>> &complete_cloud,
     double min_cloud_size, double min_dist_backoff, Box histogram_box,
     const Eigen::Vector3f &position, double min_realsense_dist);
+bool tooCloseToObstacle(
+	const pcl::PointCloud<pcl::PointXYZ> &pointcloud,
+    double min_dist, const Eigen::Vector3f position, double min_realsense_dist);
 void calculateFOV(double h_FOV, double v_FOV, std::vector<int> &z_FOV_idx,
                   int &e_FOV_min, int &e_FOV_max, double yaw, double pitch);
 void propagateHistogram(Histogram &polar_histogram_est,

@@ -305,8 +305,7 @@ void LocalPlanner::determineStrategy() {
           star_planner_.setCostParams(goal_cost_param_, smooth_cost_param_,
                                       height_change_cost_param_adapted_,
                                       height_change_cost_param_);
-          star_planner_.setBoxSize(histogram_box_, ground_distance_);
-          star_planner_.setCloud(complete_cloud_);
+          star_planner_.setCloud(final_cloud_);
           star_planner_.buildLookAheadTree();
 
           waypoint_type_ = tryPath;
