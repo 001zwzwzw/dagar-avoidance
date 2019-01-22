@@ -22,6 +22,7 @@
 #include "planner_functions.h"
 #include "star_planner.h"
 #include "tree_node.h"
+#include "cost_parameters.h"
 
 #include <pcl/ModelCoefficients.h>
 #include <pcl/filters/crop_box.h>
@@ -109,10 +110,6 @@ class LocalPlanner {
   double curr_yaw_, last_yaw_;
   double min_speed_;
   double max_speed_;
-  double goal_cost_param_;
-  double smooth_cost_param_;
-  double height_change_cost_param_ = 4;
-  double height_change_cost_param_adapted_ = 4;
   double keep_distance_;
   ros::Time integral_time_old_;
   double no_progress_slope_;
@@ -143,6 +140,7 @@ class LocalPlanner {
 
   std::vector<TreeNode> tree_;
   StarPlanner star_planner_;
+  costParameters cost_params_;
 
   pcl::PointCloud<pcl::PointXYZ> reprojected_points_, final_cloud_;
 

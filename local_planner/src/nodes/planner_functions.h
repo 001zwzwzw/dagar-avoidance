@@ -15,6 +15,7 @@
 #include "box.h"
 #include "common.h"
 #include "histogram.h"
+#include "cost_parameters.h"
 
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -73,10 +74,8 @@ void compressHistogramElevation(Histogram &new_hist, Histogram input_hist);
 double costFunction(int e, int z, const nav_msgs::GridCells &path_waypoints,
                     const Eigen::Vector3f &goal,
                     const Eigen::Vector3f &position,
-                    const Eigen::Vector3f &position_old, double goal_cost_param,
-                    double smooth_cost_param,
-                    double height_change_cost_param_adapted,
-                    double height_change_cost_param, bool only_yawed);
+                    const Eigen::Vector3f &position_old,
+					costParameters cost_params, bool only_yawed);
 void findFreeDirections(
     const Histogram &histogram, double safety_radius,
     nav_msgs::GridCells &path_candidates, nav_msgs::GridCells &path_selected,
@@ -84,9 +83,7 @@ void findFreeDirections(
     nav_msgs::GridCells path_waypoints,
     std::vector<float> &cost_path_candidates, const Eigen::Vector3f &goal,
     const Eigen::Vector3f &position, const Eigen::Vector3f &position_old,
-    double goal_cost_param, double smooth_cost_param,
-    double height_change_cost_param_adapted, double height_change_cost_param,
-    bool only_yawed, int resolution_alpha);
+	costParameters cost_params, bool only_yawed, int resolution_alpha);
 bool calculateCostMap(std::vector<float> cost_path_candidates,
                       std::vector<int> &cost_idx_sorted);
 bool getDirectionFromTree(
