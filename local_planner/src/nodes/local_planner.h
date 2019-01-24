@@ -17,13 +17,13 @@
 #include <ros/ros.h>
 
 #include "box.h"
+#include "candidate_direction.h"
 #include "common.h"
+#include "cost_parameters.h"
 #include "histogram.h"
 #include "planner_functions.h"
 #include "star_planner.h"
 #include "tree_node.h"
-#include "cost_parameters.h"
-#include "candidate_direction.h"
 
 #include <pcl/ModelCoefficients.h>
 #include <pcl/filters/crop_box.h>
