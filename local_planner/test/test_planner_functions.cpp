@@ -79,3 +79,94 @@ TEST(PlannerFunctions, generateNewHistogramSpecificCells) {
     }
   }
 }
+
+TEST(PlannerFunctions, padPolarMatrixAzimuthWrapping) {
+  // GIVEN: a matrix with known data. Where every cell has the value of its column index.
+  // And by how many lines should be padded
+  int n_lines_padding = 3;
+  Eigen::MatrixXd matrix;
+  matrix.resize(30, 60);
+  matrix.fill(1.0);
+  for(int c = 0; c < matrix.cols(); c++){
+	  matrix.col(c) = c * matrix.col(c);
+  }
+
+  // WHEN: we pad the matrix
+  Eigen::MatrixXd matrix_padded;
+  padPolarMatrix(matrix, n_lines_padding, matrix_padded);
+
+  // THEN: the output matrix should have the right size,
+  // the middle part should be equal to the original matrix,
+  // and the wrapping around the azimuth angle should be correct.
+
+  ASSERT_EQ(30 + 2 * n_lines_padding, matrix_padded.rows());
+  ASSERT_EQ(60 + 2 * n_lines_padding, matrix_padded.cols());
+
+  bool middle_part_correct = matrix_padded.block(n_lines_padding, n_lines_padding, matrix.rows(), matrix.cols()) == matrix;
+  bool col_0_correct = matrix_padded.col(0) == matrix_padded.col(60);
+  bool col_1_correct = matrix_padded.col(1) == matrix_padded.col(61);
+  bool col_2_correct = matrix_padded.col(2) == matrix_padded.col(62);
+  bool col_63_correct = matrix_padded.col(63) == matrix_padded.col(3);
+  bool col_64_correct = matrix_padded.col(64) == matrix_padded.col(4);
+  bool col_65_correct = matrix_padded.col(65) == matrix_padded.col(5);
+
+  EXPECT_TRUE(middle_part_correct);
+  EXPECT_TRUE(col_0_correct);
+  EXPECT_TRUE(col_1_correct);
+  EXPECT_TRUE(col_2_correct);
+  EXPECT_TRUE(col_63_correct);
+  EXPECT_TRUE(col_64_correct);
+  EXPECT_TRUE(col_65_correct);
+}
+
+TEST(PlannerFunctions, padPolarMatrixElevationWrapping) {
+  // GIVEN: a matrix with known data. Where every cell has the value of its column index.
+  // And by how many lines should be padded
+  int n_lines_padding = 2;
+  Eigen::MatrixXd matrix;
+  matrix.resize(6, 10);
+  matrix.fill(0.0);
+
+  matrix(0, 0) = 1;
+  matrix(0, 1) = 2;
+  matrix(1, 0) = 3;
+  matrix(0, 5) = 4;
+  matrix(1, 6) = 5;
+  matrix(0, 9) = 6;
+  matrix(5, 0) = 7;
+  matrix(4, 4) = 8;
+  matrix(5, 9) = 9;
+
+  // WHEN: we pad the matrix
+  Eigen::MatrixXd matrix_padded;
+  padPolarMatrix(matrix, n_lines_padding, matrix_padded);
+
+  // THEN: the output matrix should have the right size,
+  // the middle part should be equal to the original matrix,
+  // and the wrapping around the elevation angle should be correct.
+
+  ASSERT_EQ(6 + 2 * n_lines_padding, matrix_padded.rows());
+  ASSERT_EQ(10 + 2 * n_lines_padding, matrix_padded.cols());
+
+  bool middle_part_correct = matrix_padded.block(n_lines_padding, n_lines_padding, matrix.rows(), matrix.cols()) == matrix;
+  bool val_1 = matrix_padded(1, 7) == 1;
+  bool val_2 = matrix_padded(1, 8) == 2;
+  bool val_3 = matrix_padded(0, 7) == 3;
+  bool val_4 = matrix_padded(1, 2) == 4;
+  bool val_5 = matrix_padded(0, 3) == 5;
+  bool val_6 = matrix_padded(1, 6) == 6;
+  bool val_7 = matrix_padded(7, 12) == 7;
+  bool val_8 = matrix_padded(9, 11) == 8;
+  bool val_9 = matrix_padded(8, 6) == 9;
+
+  EXPECT_TRUE(middle_part_correct);
+  EXPECT_TRUE(val_1);
+  EXPECT_TRUE(val_2);
+  EXPECT_TRUE(val_3);
+  EXPECT_TRUE(val_4);
+  EXPECT_TRUE(val_5);
+  EXPECT_TRUE(val_6);
+  EXPECT_TRUE(val_7);
+  EXPECT_TRUE(val_8);
+  EXPECT_TRUE(val_9);
+}
