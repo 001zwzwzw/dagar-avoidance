@@ -28,7 +28,8 @@ void StarPlanner::setFOV(float h_FOV, float v_FOV) {
   v_FOV_ = v_FOV;
 }
 
-void StarPlanner::setPose(const geometry_msgs::PoseStamped& pose, float curr_yaw) {
+void StarPlanner::setPose(const geometry_msgs::PoseStamped& pose,
+                          float curr_yaw) {
   pose_ = pose;
   curr_yaw_ = curr_yaw;
 }
@@ -57,15 +58,18 @@ float StarPlanner::treeCostFunction(int node_number) {
   Eigen::Vector3f origin_position = tree_[origin].getPosition();
   PolarPoint goal_pol = cartesianToPolar(goal_, origin_position);
 
-  float target_cost = 2.0f * indexAngleDifference(z, goal_pol.z) +
-      20.0f * indexAngleDifference(e, goal_pol.e);  // include effective direction?
-  float turning_cost = indexAngleDifference(z, tree_[0].yaw_);  // maybe include pitching cost?
+  float target_cost =
+      2.0f * indexAngleDifference(z, goal_pol.z) +
+      20.0f *
+          indexAngleDifference(e, goal_pol.e);  // include effective direction?
+  float turning_cost =
+      indexAngleDifference(z, tree_[0].yaw_);  // maybe include pitching cost?
 
   float last_e = tree_[origin].last_e_;
   float last_z = tree_[origin].last_z_;
 
   float smooth_cost = 5.0f * (2.0f * indexAngleDifference(z, last_z) +
-                            5.0f * indexAngleDifference(e, last_e));
+                              5.0f * indexAngleDifference(e, last_e));
   if (indexAngleDifference(z, last_z) > 100) {
     smooth_cost = HUGE_VAL;
   }
@@ -79,7 +83,9 @@ float StarPlanner::treeCostFunction(int node_number) {
           path_node_positions_[partner_node_idx];
       Eigen::Vector3f node_position = tree_[node_number].getPosition();
       float dist = (toEigen(partner_node_position) - node_position).norm();
-      smooth_cost_to_old_tree = 200.0f * dist / (0.5f * static_cast<float>(tree_[node_number].depth_));
+      smooth_cost_to_old_tree =
+          200.0f * dist /
+          (0.5f * static_cast<float>(tree_[node_number].depth_));
     }
   }
 
@@ -98,9 +104,10 @@ float StarPlanner::treeHeuristicFunction(int node_number) {
 
   float smooth_cost =
       10.0f * (indexAngleDifference(goal_pol.z, tree_[node_number].last_z_) +
-            indexAngleDifference(goal_pol.e, tree_[node_number].last_e_));
+               indexAngleDifference(goal_pol.e, tree_[node_number].last_e_));
 
-  return std::pow(tree_discount_factor_, static_cast<float>(tree_[node_number].depth_)) *
+  return std::pow(tree_discount_factor_,
+                  static_cast<float>(tree_[node_number].depth_)) *
          (smooth_cost + goal_cost);
 }
 
@@ -129,7 +136,8 @@ void StarPlanner::buildLookAheadTree() {
     std::vector<int> z_FOV_idx;
     int e_FOV_min, e_FOV_max;
     calculateFOV(h_FOV_, v_FOV_, z_FOV_idx, e_FOV_min, e_FOV_max,
-                 tree_[origin].yaw_, 0.0f);  //assume pitch is zero at every node
+                 tree_[origin].yaw_,
+                 0.0f);  // assume pitch is zero at every node
 
     Histogram propagated_histogram = Histogram(2 * ALPHA_RES);
     Histogram histogram = Histogram(ALPHA_RES);
