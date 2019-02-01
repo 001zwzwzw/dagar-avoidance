@@ -59,7 +59,7 @@ void Histogram::downsample() {
            age_(i_high_res, j_high_res + 1) +
            age_(i_high_res + 1, j_high_res + 1)) /
           4.f;
-      double mean_dist =
+      float mean_dist =
           (dist_(i_high_res, j_high_res) + dist_(i_high_res + 1, j_high_res) +
            dist_(i_high_res, j_high_res + 1) +
            dist_(i_high_res + 1, j_high_res + 1)) /
