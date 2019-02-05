@@ -231,7 +231,7 @@ void LocalPlannerNode::updatePlannerInfo() {
       pcl::fromROSMsg(pc2cloud_world, complete_cloud);
       local_planner_->complete_cloud_.push_back(std::move(complete_cloud));
     } catch (tf::TransformException& ex) {
-      ROS_ERROR("Received an exception trying to transform a pointcloud: %s",
+      ROS_ERROR("Received an exception trying to transform  pointcloud: %s",
                 ex.what());
     }
   }
