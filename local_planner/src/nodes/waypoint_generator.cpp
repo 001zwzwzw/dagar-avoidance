@@ -75,7 +75,7 @@ void WaypointGenerator::calculateWaypoint() {
 
     case reachHeight: {
       ROS_DEBUG("[WG] Reach height first, go fast");
-      goFast();
+      reachGoalAltitudeFirst();
       getPathMsg();
       break;
     }
@@ -189,27 +189,20 @@ bool WaypointGenerator::withinGoalRadius() {
 
 // when taking off, first publish waypoints to reach the goal altitude
 void WaypointGenerator::reachGoalAltitudeFirst() {
-  output_.goto_position = planner_info_.offboard_pose.pose.position;
-  output_.goto_position.z = pose_.pose.position.z + 0.5;
+  // Constant which defines the distance how far above the drone we set the
+  // setpoint
+  const float RISE_CARROT_STICK_LENGTH = 0.5;
 
-  // if goal lies directly overhead, do not yaw
-  float goal_acceptance_radius = 1.0f;
-  if ((goal_ - toEigen(pose_.pose.position)).norm() < goal_acceptance_radius) {
-    new_yaw_ = curr_yaw_;
+  output_.goto_position = pose_.pose.position;
+  if (pose_.pose.position.z <= goal_(2) - RISE_CARROT_STICK_LENGTH) {
+    output_.goto_position.z += RISE_CARROT_STICK_LENGTH;
+  } else {
+    output_.goto_position.z = goal_(2);
   }
 
-  // constrain speed
-  Eigen::Vector3f pose_to_wp =
-      toEigen(output_.goto_position) - toEigen(pose_.pose.position);
-
-  if (pose_to_wp.norm() > 0.01) pose_to_wp.normalize();
-
-  pose_to_wp *= planner_info_.min_speed;
-
-  output_.goto_position = toPoint(toEigen(pose_.pose.position) + pose_to_wp);
+  // Will be overwritten by smoothing
   output_.adapted_goto_position = output_.goto_position;
   output_.smoothed_goto_position = output_.goto_position;
-  smoothed_goto_location_ = toEigen(output_.smoothed_goto_position);
 }
 
 void WaypointGenerator::smoothWaypoint(double dt) {
@@ -368,21 +361,7 @@ void WaypointGenerator::getPathMsg() {
 
   // adapt waypoint to suitable speed (slow down if waypoint is out of FOV)
   adaptSpeed();
-  output_.smoothed_goto_position = output_.adapted_goto_position;
-
-  // go to flight height first or smooth wp
-  if (!planner_info_.reach_altitude) {
-    reachGoalAltitudeFirst();
-
-    ROS_DEBUG("[WG] after altitude func: [%f %f %f].",
-              output_.smoothed_goto_position.x,
-              output_.smoothed_goto_position.y,
-              output_.smoothed_goto_position.z);
-    ROS_DEBUG("[WG] pose altitude func: [%f %f %f].", pose_.pose.position.x,
-              pose_.pose.position.y, pose_.pose.position.z);
-  } else {
-    smoothWaypoint(dt);
-  }
+  smoothWaypoint(dt);
 
   // change waypoint if drone is at goal or above
   if (withinGoalRadius()) {
